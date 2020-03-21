@@ -39,13 +39,9 @@ func createUser() proto.User {
 
 func main() {
 	user := createUser()
-	connect := proto.Connect{
-		User:   &user,
-		Active: true,
-	}
 
 	client := createClient()
-	stream, err := client.CreateStream(context.Background(), &connect)
+	stream, err := client.CreateStream(context.Background(), &user)
 	if err != nil {
 		panic(err)
 	}

@@ -13,14 +13,9 @@ message Message {
     string timestamp = 3;
 }
 
-message Connect {
-    User user = 1;
-    bool active = 2;
-}
-
 message Close {}
 
 service Broadcast {
-    rpc CreateStream(Connect) returns (stream Message);
+    rpc CreateStream(User) returns (stream Message);
     rpc BroadcastMessage(Message) returns (Close);
 }
