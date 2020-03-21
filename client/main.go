@@ -7,6 +7,7 @@ import (
 	"flag"
 	"math/rand"
 	"strconv"
+	"time"
 
 	proto "github.com/utevo/gRPC-Chat/proto"
 	"google.golang.org/grpc"
@@ -46,4 +47,13 @@ func main() {
 		panic(err)
 	}
 	_ = stream
+
+	message := proto.Message{
+		Id:        "1",
+		Content:   "Hello",
+		Timestamp: time.Now().String(),
+	}
+	if _, err := client.BroadcastMessage(context.Background(), &message); err != nil {
+		panic(err)
+	}
 }
