@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func connect() proto.BroadcastClient {
+func createClient() proto.BroadcastClient {
 	conn, err := grpc.Dial("localhost:5050", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
@@ -22,9 +22,7 @@ func connect() proto.BroadcastClient {
 	return client
 }
 
-func main() {
-	client := connect()
-
+func createUser() proto.User {
 	userName := flag.String("name", "Anonymus", "The name of user")
 
 	randInt := rand.Int31()
@@ -36,16 +34,20 @@ func main() {
 		Id:   id,
 		Name: *userName,
 	}
+	return user
+}
 
+func main() {
+	user := createUser()
 	connect := proto.Connect{
 		User:   &user,
 		Active: true,
 	}
 
+	client := createClient()
 	stream, err := client.CreateStream(context.Background(), &connect)
 	if err != nil {
 		panic(err)
 	}
-
 	_ = stream
 }
