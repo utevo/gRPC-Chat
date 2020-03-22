@@ -37,6 +37,22 @@ func (server *Server) CreateStream(user *proto.User, stream proto.Broadcast_Crea
 
 func (server *Server) BroadcastMessage(context context.Context, message *proto.Message) (*proto.Close, error) {
 	fmt.Println("New Message: ", message)
+
+	for _, conn := range server.connections {
+
+		if conn.active {
+			go func(msg *proto.Message, conn *Connection) {
+				if err := conn.stream.Send(msg); err != nil {
+					fmt.Printf("Connection of user %v was closed", conn.user)
+					conn.active = false
+					return
+				}
+				return
+			}(message, conn)
+		}
+
+	}
+
 	return &proto.Close{}, nil
 }
 
