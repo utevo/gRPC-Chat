@@ -32,7 +32,7 @@ func (server *Server) CreateStream(user *proto.User, stream proto.Broadcast_Crea
 	server.connections = append(server.connections, &connection)
 
 	fmt.Println("New Steam Created")
-	return nil
+	return <-connection.errors
 }
 
 func (server *Server) BroadcastMessage(context context.Context, message *proto.Message) (*proto.Close, error) {

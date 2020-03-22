@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	proto "github.com/utevo/gRPC-Chat/proto"
@@ -39,6 +43,7 @@ func createUser() proto.User {
 }
 
 func main() {
+	wait := sync.WaitGroup{}
 	user := createUser()
 
 	client := createClient()
@@ -46,14 +51,52 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ = stream
 
-	message := proto.Message{
-		Id:        "1",
-		Content:   "Hello",
-		Timestamp: time.Now().String(),
-	}
-	if _, err := client.BroadcastMessage(context.Background(), &message); err != nil {
-		panic(err)
-	}
+	wait.Add(1)
+	go func() {
+		defer wait.Done()
+
+		for {
+			message, err := stream.Recv()
+			if err != nil {
+				fmt.Printf("Error during receiving message: %v", err)
+				return
+			}
+			fmt.Print(message)
+		}
+	}()
+
+	wait.Add(1)
+	go func() {
+		defer wait.Done()
+
+		scanner := bufio.NewScanner(os.Stdin)
+
+		for scanner.Scan() {
+
+			message := proto.Message{
+				Id:        user.GetId(),
+				Content:   scanner.Text(),
+				Timestamp: time.Now().String(),
+			}
+
+			_, err := client.BroadcastMessage(context.Background(), &message)
+			if err != nil {
+				fmt.Printf("Error during sending message: %v", err)
+				return
+			}
+
+		}
+	}()
+
+	// message := proto.Message{
+	// 	Id:        "1",
+	// 	Content:   "Hello",
+	// 	Timestamp: time.Now().String(),
+	// }
+	// if _, err := client.BroadcastMessage(context.Background(), &message); err != nil {
+	// 	panic(err)
+	// }
+
+	wait.Wait()
 }
